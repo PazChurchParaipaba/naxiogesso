@@ -305,7 +305,14 @@ Object.assign(App, {
                 }
             };
 
-            _sb.channel('cozinha-delivery').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'orders', filter: `store_id=eq.${App.state.storeId}` }, async (payload) => {
+            if (App.state.kitchenDeliverySub) {
+                try { _sb.removeChannel(App.state.kitchenDeliverySub); } catch (e) {}
+            }
+            if (App.state.kitchenMesasSub) {
+                try { _sb.removeChannel(App.state.kitchenMesasSub); } catch (e) {}
+            }
+
+            App.state.kitchenDeliverySub = _sb.channel('cozinha-delivery-' + Date.now()).on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'orders', filter: `store_id=eq.${App.state.storeId}` }, async (payload) => {
                 if (['pendente', 'aguardando_prestador', 'pago'].includes(payload.new.status)) {
                     App.store.loadOrders(); App.store.loadMetrics();
                     const { data: fullOrder } = await _sb.from('orders').select('*, products(nome, categoria), profiles(nome_completo, whatsapp)').eq('id', payload.new.id).single();
@@ -316,7 +323,7 @@ Object.assign(App, {
             // 🔥 FIX: Supabase Realtime NÃO suporta filter por campo boolean.
             // filter: 'imprimir_cozinha=eq.true' era ignorado silenciosamente — o canal NUNCA disparava.
             // Correção: filtra por store_id (suportado) e valida imprimir_cozinha no handler.
-            _sb.channel('cozinha-mesas-v2').on('postgres_changes', {
+            App.state.kitchenMesasSub = _sb.channel('cozinha-mesas-' + Date.now()).on('postgres_changes', {
                 event: 'UPDATE',
                 schema: 'public',
                 table: 'comandas',

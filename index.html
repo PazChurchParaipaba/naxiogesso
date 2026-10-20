@@ -1199,37 +1199,39 @@
                                 const subcatSelect = document.getElementById('new-prod-subcat');
                                 
                                 if(categoria !== "") {
-                                    divSubcat.style.display = 'block';
-                                    subcatSelect.innerHTML = '<option value="">Selecione uma subcategoria...</option>';
-                                    
-                                    // Hardcoded standard subcategories
-                                    if(categoria === 'Vestuário e Calçados') {
-                                        subcatSelect.appendChild(new Option('Camisetas', 'Camisetas'));
-                                        subcatSelect.appendChild(new Option('Calças', 'Calças'));
-                                        subcatSelect.appendChild(new Option('Tênis', 'Tênis'));
-                                    } else if(categoria === 'Alimentos e Bebidas') {
-                                        subcatSelect.appendChild(new Option('Bebidas', 'Bebidas'));
-                                        subcatSelect.appendChild(new Option('Laticínios', 'Laticínios'));
-                                        subcatSelect.appendChild(new Option('Padaria', 'Padaria'));
-                                    } else {
-                                        subcatSelect.appendChild(new Option('Geral', 'Geral'));
+                                    if (divSubcat) divSubcat.style.display = 'block';
+                                    if (subcatSelect) {
+                                        subcatSelect.innerHTML = '<option value="">Selecione uma subcategoria...</option>';
+                                        
+                                        // Hardcoded standard subcategories
+                                        if(categoria === 'Vestuário e Calçados') {
+                                            subcatSelect.appendChild(new Option('Camisetas', 'Camisetas'));
+                                            subcatSelect.appendChild(new Option('Calças', 'Calças'));
+                                            subcatSelect.appendChild(new Option('Tênis', 'Tênis'));
+                                        } else if(categoria === 'Alimentos e Bebidas') {
+                                            subcatSelect.appendChild(new Option('Bebidas', 'Bebidas'));
+                                            subcatSelect.appendChild(new Option('Laticínios', 'Laticínios'));
+                                            subcatSelect.appendChild(new Option('Padaria', 'Padaria'));
+                                        } else {
+                                            subcatSelect.appendChild(new Option('Geral', 'Geral'));
+                                        }
+
+                                        // Load custom subcategories for this category
+                                        const customCats = JSON.parse(localStorage.getItem('custom_categories') || '{}');
+                                        if(customCats[categoria]) {
+                                            customCats[categoria].forEach(sub => {
+                                                if(!Array.from(subcatSelect.options).some(o => o.value === sub)) {
+                                                    subcatSelect.appendChild(new Option(sub, sub));
+                                                }
+                                            });
+                                        }
                                     }
 
-                                    // Load custom subcategories for this category
-                                    const customCats = JSON.parse(localStorage.getItem('custom_categories') || '{}');
-                                    if(customCats[categoria]) {
-                                        customCats[categoria].forEach(sub => {
-                                            if(!Array.from(subcatSelect.options).some(o => o.value === sub)) {
-                                                subcatSelect.appendChild(new Option(sub, sub));
-                                            }
-                                        });
-                                    }
-
-                                    // Show variations for any selected category
-                                    divVariations.style.display = 'block';
+                                    // Show variations for any selected category if element exists
+                                    if (divVariations) divVariations.style.display = 'block';
                                 } else {
-                                    divSubcat.style.display = 'none';
-                                    divVariations.style.display = 'none';
+                                    if (divSubcat) divSubcat.style.display = 'none';
+                                    if (divVariations) divVariations.style.display = 'none';
                                 }
                             }
                         </script>
@@ -1732,7 +1734,7 @@
     <script src="./js/autopecas_pro.js"></script>
     <script src="./js/naxio_gesso.js?v=8.5.0-FRETE-ESTOQUE"></script>
     <script src="./js/modules_auth.js"></script>
-    <script src="./js/modules.js?v=final_fix"></script>
+    <script src="./js/modules.js?v=8.7.1-FIX"></script>
     <script src="./js/nfe_import.js"></script>
     <script src="./js/modules_extensions.js"></script>
     <script src="js/client.js"></script>
@@ -1820,16 +1822,6 @@
                 }
             }, 3500);
         });
-
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js').then(reg => {
-                    console.log('Service Worker Registrado!', reg);
-                }).catch(err => {
-                    console.log('Falha no Service Worker', err);
-                });
-            });
-        }
     </script>
 </body>
 
